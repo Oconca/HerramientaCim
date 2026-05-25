@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./oconca.db:/app/oconca.db
+      - ./Congreso.xlsx:/app/Congreso.xlsx
+      - ./cimtra-oconca.xlsx:/app/cimtra-oconca.xlsx
+    restart: unless-stopped

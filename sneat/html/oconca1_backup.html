@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+
+<!-- =========================================================
+* Sneat - Bootstrap 5 HTML Admin Template - Pro | v1.0.0
+==============================================================
+
+* Product Page: https://themeselection.com/products/sneat-bootstrap-html-admin-template/
+* Created by: ThemeSelection
+* License: You must have a valid license purchased in order to legally use the theme for your project.
+* Copyright ThemeSelection (https://themeselection.com)
+
+=========================================================
+ -->
+<!-- beautify ignore:start -->
+<html
+  lang="en"
+  class="light-style layout-menu-fixed"
+  dir="ltr"
+  data-theme="theme-default"
+  data-assets-path="../assets/"
+  data-template="vertical-menu-template-free"
+>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
+    />
+
+    <title>OCONCA</title>
+
+    <meta name="description" content="" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../assets/img/favicon/favicon.ico" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Icons. Uncomment required icon fonts -->
+    <link rel="stylesheet" href="../assets/vendor/fonts/boxicons.css" />
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="../assets/vendor/css/core.css" class="template-customizer-core-css" />
+    <link rel="stylesheet" href="../assets/vendor/css/theme-default.css" class="template-customizer-theme-css" />
+    <link rel="stylesheet" href="../assets/css/demo.css" />
+
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <!-- Custom overrides to remove scroll and logo -->
+    <style>
+      /* Remove overflow scrolling from sidebar and content */
+      .layout-menu, .layout-menu .menu-inner {
+        overflow: visible !important;
+        max-height: none !important;
+      }
+      .content-wrapper {
+        overflow: visible !important;
+      }
+      /* Ensure tables fit without horizontal scroll */
+      .table-responsive {
+        overflow-x: auto;
+      }
+    </style>
+
+    <!-- Page CSS -->
+
+    <!-- Helpers -->
+    <script src="../assets/vendor/js/helpers.js"></script>
+
+    <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
+    <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
+    <script src="../assets/js/config.js"></script>
+  </head>
+
+  <body>
+    <!-- Layout wrapper -->
+    <div class="layout-wrapper layout-content-navbar" id="app">
+      <div class="layout-container">
+        <!-- Menu -->
+
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <!-- Sneat logo removed as per user request -->
+          <div class="app-brand demo">
+            <a href="javascript:void(0)" class="app-brand-link">
+              <span class="app-brand-text demo menu-text fw-bolder ms-2"> CIMTRA </span>
+            </a>
+            <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
+              <i class="bx bx-chevron-left bx-sm align-middle"></i>
+            </a>
+          </div>
+		  
+          <div class="menu-inner-shadow"></div>
+
+          <ul class="menu-inner py-1">
+            <li class="menu-item" :class="{ active: campoSeleccionado === null && bloqueSeleccionado === null }">
+              <a href="javascript:void(0)" class="menu-link" @click.prevent="campoSeleccionado = null; bloqueSeleccionado = null">
+                <i class="menu-icon tf-icons bx bx-home-circle"></i>
+                <div data-i18n="Analytics">INICIO</div>
+              </a>
+            </li>
+            <li class="menu-item" v-for="(campo, cIndex) in campos" :key="'campo-'+campo.id" :class="{ active: campoSeleccionado === cIndex, open: campoSeleccionado === cIndex }">
+              <a href="javascript:void(0);" class="menu-link menu-toggle" @click.prevent="campoSeleccionado = campoSeleccionado === cIndex ? null : cIndex">
+                <i class="menu-icon tf-icons bx bx-layout"></i>
+                <div :data-i18n="campo.nombre">{{ campo.nombre }}</div>
+              </a>
+              <ul class="menu-sub" v-show="campoSeleccionado === cIndex">
+                <li class="menu-item" v-for="bloque in campo.bloques" :key="'bloque-'+bloque.id" :class="{ active: bloqueSeleccionado && bloqueSeleccionado.id === bloque.id }">
+                  <a href="javascript:void(0)" class="menu-link" @click.prevent="bloqueSeleccionado = bloque">
+                    <div style="white-space: normal;">{{ bloque.nombre.replace('BLOQUE', '').trim() }}</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </aside>
+          
+        <!-- / Menu -->
+
+        <!-- Layout container -->
+        <div class="layout-page">
+          <!-- Navbar -->
+
+          <div class="content-wrapper">
+            <!-- Content -->
+
+            <div class="container-fluid flex-grow-1 px-0 container-p-y">
+              
+          
+		  
+                <nav class="navbar navbar-example navbar-expand-lg bg-light">
+                  <div class="container-fluid">
+                    
+                    <button
+                      class="navbar-toggler"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#navbar-ex-4"
+                    >
+                      <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse" id="navbar-ex-4">
+                      <div class="navbar-nav me-auto">
+                        <div class="nav-item dropdown" v-if="isLoggedIn">
+                          <a class="nav-link dropdown-toggle" href="javascript:void(0)" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Inicio
+                          </a>
+                          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#modalNuevaRevision">Nueva Revisión</a>
+                            <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#modalNuevosCampos">Nuevos Campos</a>
+                          </div>
+                        </div>
+                        <a class="nav-item nav-link" :class="{active: vistaActual === 'evaluacion'}" href="javascript:void(0)" @click="vistaActual = 'evaluacion'" v-if="isLoggedIn">Evaluación</a>
+                        <a class="nav-item nav-link" href="javascript:void(0)" v-if="isLoggedIn">Estadisticas</a>
+                        <a class="nav-item nav-link" href="javascript:void(0)" v-if="isLoggedIn">Reportes</a>
+                        <a class="nav-item nav-link" href="javascript:void(0)" v-if="isLoggedIn">Ayuda</a>
+                      </div>
+                      <div class="navbar-nav ms-auto" v-if="isLoggedIn">
+                        <a class="nav-item nav-link" href="javascript:void(0)" @click="logout()"><i class='bx bx-log-out-circle me-1'></i>Salir</a>
+                      </div>
+
+                      
+                    </div>
+                  </div>
+                </nav>
+            
+		  
+
+          <!-- Content wrapper -->
+          <div class="content-wrapper">
+            <!-- Global header Entidad y Periodo -->
+            <div class="container-fluid flex-grow-1 px-0 container-p-y pb-0" v-if="entidad || periodo">
+              <div class="card p-3 shadow-sm bg-label-primary mb-3 mt-3 mx-4" style="border: 1px solid #d9dee3;">
+                <h5 class="mb-0 text-primary d-flex align-items-center">
+                  <i class="bx bx-building-house me-2"></i> <strong>Entidad:&nbsp;</strong> {{ entidad || '---' }} 
+                  <span class="mx-4 text-muted">|</span> 
+                  <i class="bx bx-calendar me-2"></i> <strong>Periodo:&nbsp;</strong> {{ periodo || '---' }}
+                </h5>
+              </div>
+            </div>
+
+            <!-- Content -->
+            <div class="container-fluid flex-grow-1 px-0 container-p-y">
+              
+              <!-- Evaluacion -->
+              <div v-if="vistaActual === 'evaluacion'">
+                <!-- Home / Welcome -->
+              <div v-if="!bloqueSeleccionado" class="card mb-4 text-center">
+                <div class="card-body">
+                  <h3 class="card-title">Bienvenido a la Herramienta CIMTRA</h3>
+                  <p class="card-text">Selecciona un bloque de evaluación en el menú lateral para comenzar.</p>
+                </div>
+              </div>
+
+              <!-- Accordion de Bloque Activo-->
+              <div v-else :key="bloqueSeleccionado.id">
+                <h5 class="mt-4">{{ bloqueSeleccionado.nombre }}</h5>
+                <div class="row">
+                  <div class="col-md mb-4 mb-md-0">
+                    <small class="text-light fw-semibold"></small>
+                    <div class="accordion mt-3" :id="'accordionExample' + bloqueSeleccionado.id">
+                      
+                      <div v-for="(aspecto, aIndex) in bloqueSeleccionado.aspectos" :key="aspecto.id" class="card accordion-item" :class="aIndex === 0 ? 'active' : ''">
+                        <h2 class="accordion-header" :id="'heading' + bloqueSeleccionado.id + '_' + aIndex">
+                          <button
+                            type="button"
+                            class="accordion-button"
+                            :class="aIndex === 0 ? '' : 'collapsed'"
+                            data-bs-toggle="collapse"
+                            :data-bs-target="'#accordion' + bloqueSeleccionado.id + '_' + aIndex"
+                            :aria-expanded="aIndex === 0 ? 'true' : 'false'"
+                            :aria-controls="'accordion' + bloqueSeleccionado.id + '_' + aIndex"
+                          >
+                            {{ aspecto.titulo }}
+                          </button>
+                        </h2>
+
+                        <div
+                          :id="'accordion' + bloqueSeleccionado.id + '_' + aIndex"
+                          class="accordion-collapse collapse"
+                          :class="aIndex === 0 ? 'show' : ''"
+                          :data-bs-parent="'#accordionExample' + bloqueSeleccionado.id"
+                        >
+                          <div class="accordion-body">
+                          </div>
+                      
+                          <div class="container-fluid px-0">
+                            <!-- Basic Bootstrap Table -->
+                            <div class="card border-0 rounded-0">
+                              
+                              <div class="table-responsive text-nowrap">
+                                <table class="table table-bordered table-sm">
+                                  <thead>
+                                    <tr>
+                                      <th rowspan="2" class="align-middle" style="width: 5%;">Pts</th>
+                                      <th rowspan="2" class="align-middle" style="width: 45%;">Criterio</th>
+                                      <th colspan="2" class="text-center align-middle" style="width: 10%;">Cumple Escenario</th>
+                                      <th colspan="5" class="text-center bg-label-danger align-middle" style="width: 40%;">Casos de Incumplimiento</th>
+                                    </tr>
+                                    <tr>
+                                      <th class="text-center align-middle">Sí</th>
+                                      <th class="text-center align-middle">No</th>
+                                      <th class="text-center align-middle" style="font-size: 0.75rem;">No existe<br>información</th>
+                                      <th class="text-center align-middle" style="font-size: 0.75rem;">No está<br>actualizada</th>
+                                      <th class="text-center align-middle" style="font-size: 0.75rem;">No corresponde<br>al apartado</th>
+                                      <th class="text-center align-middle" style="font-size: 0.75rem;">Se encuentra<br>ilegible/ambiguo</th>
+                                      <th class="text-center align-middle" style="font-size: 0.75rem;">Enlace<br>roto</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody class="table-border-bottom-0">
+                                    <tr v-for="criterio in aspecto.criterios" :key="criterio.id">
+                                      <td class="text-center"><strong class="text-primary">{{ criterio.puntos }}</strong></td>
+                                      <td style="white-space: normal;">{{ criterio.descripcion }}</td>
+                                      
+                                      <!-- Cumple: Si / No -->
+                                      <td class="text-center align-middle">
+                                        <input class="form-check-input" type="radio" :name="'cumple_'+criterio.id" value="si" v-model="criterio.cumple" />
+                                      </td>
+                                      <td class="text-center align-middle">
+                                        <input class="form-check-input" type="radio" :name="'cumple_'+criterio.id" value="no" v-model="criterio.cumple" />
+                                      </td>
+
+                                      <!-- 5 Errores -->
+                                      <td class="text-center align-middle bg-lighter">
+                                        <input class="form-check-input" type="checkbox" v-model="criterio.errores.no_existe" :disabled="criterio.cumple === 'si'" />
+                                      </td>
+                                      <td class="text-center align-middle bg-lighter">
+                                        <input class="form-check-input" type="checkbox" v-model="criterio.errores.no_actualizada" :disabled="criterio.cumple === 'si'" />
+                                      </td>
+                                      <td class="text-center align-middle bg-lighter">
+                                        <input class="form-check-input" type="checkbox" v-model="criterio.errores.no_corresponde" :disabled="criterio.cumple === 'si'" />
+                                      </td>
+                                      <td class="text-center align-middle bg-lighter">
+                                        <input class="form-check-input" type="checkbox" v-model="criterio.errores.ilegible" :disabled="criterio.cumple === 'si'" />
+                                      </td>
+                                      <td class="text-center align-middle bg-lighter">
+                                        <input class="form-check-input" type="checkbox" v-model="criterio.errores.enlace_roto" :disabled="criterio.cumple === 'si'" />
+                                      </td>
+                                    </tbody>
+                                    <tfoot class="table-border-bottom-0" style="background-color: #f1f3f4;">
+                                      <tr>
+                                        <td class="text-center align-middle"><strong class="text-primary">{{ calcularPuntaje(aspecto) }} / {{ calcularPuntajeMaximo(aspecto) }}</strong></td>
+                                        <td colspan="7" class="text-end pe-4 align-middle"><strong>{{ calcularPorcentaje(aspecto) }}%</strong></td>
+                                      </tr>
+                                    </tfoot>
+                                  </table>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                    </div>
+                  </div>
+                </div>
+              </div>
+              </div>
+
+              <!-- Login Form -->
+              <div v-else-if="vistaActual === 'login'" class="d-flex justify-content-center align-items-center" style="min-height: 60vh;">
+                <div class="card shadow-lg border-0" style="max-width: 400px; width: 100%;">
+                  <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                      <h4 class="mb-2">¡Bienvenido a CIMTRA! 👋</h4>
+                      <p class="mb-4">Por favor inicia sesión en tu cuenta</p>
+                    </div>
+                    <form @submit.prevent="login_user">
+                      <div class="mb-3">
+                        <label for="username" class="form-label">Usuario</label>
+                        <input type="text" class="form-control" id="username" name="username" v-model="username" placeholder="Ingresa tu usuario" autofocus />
+                      </div>
+                      <div class="mb-3 form-password-toggle">
+                        <div class="d-flex justify-content-between">
+                          <label class="form-label" for="password">Contraseña</label>
+                        </div>
+                        <div class="input-group input-group-merge">
+                          <input type="password" id="password" class="form-control" name="password" v-model="password" placeholder="············" aria-describedby="password" />
+                          <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+                        </div>
+                      </div>
+                      <div class="mb-3" v-if="loginError">
+                        <small class="text-danger">{{ loginError }}</small>
+                      </div>
+                      <div class="mb-3">
+                        <button class="btn btn-primary d-grid w-100" type="submit">Iniciar Sesión</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              <!-- Modal: Nueva Revision -->
+              <div class="modal fade" id="modalNuevaRevision" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title text-primary"><i class="bx bx-folder-plus me-2"></i>Nueva Revisión</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <form @submit.prevent="iniciarRevision">
+                        <div class="mb-3">
+                          <label class="form-label" for="entidad">Entidad</label>
+                          <input type="text" class="form-control" id="entidad" v-model="entidad" placeholder="Ej. Gobierno de Monterrey" required />
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label" for="periodo">Periodo</label>
+                          <input type="text" class="form-control" id="periodo" v-model="periodo" placeholder="Ej. 2024 - 2026" required />
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3 w-100"><i class="bx bx-save me-2"></i> Guardar y Empezar Revisión</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Modal: Nuevos Campos -->
+              <div class="modal fade" id="modalNuevosCampos" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title text-primary"><i class="bx bx-list-plus me-2"></i>Agregar Nuevos Campos</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <form @submit.prevent="agregarNuevoCampo">
+                        <div class="row">
+                          <div class="col-md-6 mb-3">
+                            <label class="form-label">Campo</label>
+                            <input type="text" class="form-control" v-model="nuevoCampo.campo" placeholder="Ej. Atención Ciudadana" required />
+                          </div>
+                          <div class="col-md-6 mb-3">
+                            <label class="form-label">Bloque</label>
+                            <input type="text" class="form-control" v-model="nuevoCampo.bloque" placeholder="Ej. Trámites y Servicios" required />
+                          </div>
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label">Puntos</label>
+                          <input type="number" min="1" class="form-control" v-model="nuevoCampo.puntos" placeholder="Ej. 1" required />
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label">Criterios de Evaluación</label>
+                          <textarea class="form-control" v-model="nuevoCampo.criterios" rows="3" placeholder="Descripción de lo que se evalúa" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3 w-100"><i class="bx bx-plus-circle me-2"></i> Agregar Criterio</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            <!-- / Content -->
+		  
+            <div class="content-backdrop fade"></div>
+          </div>
+          <!-- Content wrapper -->
+        </div>
+        <!-- / Layout page -->
+      </div>
+
+      <!-- Overlay -->
+      <div class="layout-overlay layout-menu-toggle"></div>
+    <!-- / Layout wrapper -->
+
+    <!-- Global Score Footer -->
+    <div style="position: fixed; bottom: 0; left: 0; width: 100%; z-index: 1050; background-color: #e9ecef; padding: 15px; border-top: 1px solid #d9dee3; display: flex; justify-content: center; gap: 40px; font-size: 1.1em; pointer-events: none;">
+      <div>Global del Proyecto: <strong class="text-primary">{{ calcularPuntajeGlobal() }} / {{ calcularPuntajeMaximoGlobal() }}</strong></div>
+      <div>Avance Total: <strong class="text-primary">{{ calcularPorcentajeGlobal() }}%</strong></div>
+    </div>
+
+
+    <!-- Core JS -->
+    <!-- build:js assets/vendor/js/core.js -->
+    <script src="../assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="../assets/vendor/libs/popper/popper.js"></script>
+    <script src="../assets/vendor/js/bootstrap.js"></script>
+    <script src="../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+
+    <script src="../assets/vendor/js/menu.js"></script>
+    <!-- endbuild -->
+
+    <!-- Vendors JS -->
+
+    <!-- Main JS -->
+    <script src="../assets/js/main.js"></script>
+
+    <!-- Page JS -->
+
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="../assets/js/cimtra_data.js"></script>
+    <script>
+      const { createApp } = Vue;
+
+      createApp({
+        data() {
+          return {
+            campos: cimtraData,
+            campos: cimtraData,
+            campoSeleccionado: null,
+            bloqueSeleccionado: null, // null muestra la bienvenida, objeto muestra el bloque
+            vistaActual: 'login', // 'login', 'evaluacion', 'nueva_revision', 'nuevos_campos'
+            entidad: '',
+            periodo: '',
+            nuevoCampo: { campo: '', bloque: '', puntos: null, criterios: '' },
+            isLoggedIn: false,
+            username: '',
+            password: '',
+            token: null,
+            loginError: null
+          };
+        },
+        mounted() {
+          const savedToken = localStorage.getItem('cimtraToken');
+          const savedEntidad = localStorage.getItem('cimtraEntidad');
+          const savedPeriodo = localStorage.getItem('cimtraPeriodo');
+
+          if (savedEntidad) this.entidad = savedEntidad;
+          if (savedPeriodo) this.periodo = savedPeriodo;
+
+          if (savedToken) {
+            this.token = savedToken;
+            this.isLoggedIn = true;
+            this.vistaActual = 'evaluacion';
+            
+            // Intentar cargar progreso de la BD en lugar de localStorage si tenemos entidad y periodo
+            if(this.entidad && this.periodo){
+               this.cargarDeBD();
+            } else {
+               const savedData = localStorage.getItem('cimtraProgress');
+               if (savedData) {
+                  try {
+                     this.campos = JSON.parse(savedData);
+                  } catch (e) { console.error("Error", e); }
+               }
+            }
+          }
+        },
+        watch: {
+          campos: {
+            handler(newValue) {
+              localStorage.setItem('cimtraProgress', JSON.stringify(newValue));
+              // Si estamos logueados y tenemos entidad y periodo, sincronizamos con la base de datos
+              if(this.isLoggedIn && this.entidad && this.periodo) {
+                 this.guardarEnBD();
+              }
+            },
+            deep: true
+          },
+          entidad(newValue) {
+            localStorage.setItem('cimtraEntidad', newValue);
+          },
+          periodo(newValue) {
+            localStorage.setItem('cimtraPeriodo', newValue);
+          }
+        },
+        methods: {
+          async login_user() {
+            this.loginError = null;
+            try {
+              const response = await fetch('http://127.0.0.1:8000/token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ username: this.username, password: this.password })
+              });
+              if (!response.ok) throw new Error('Usuario o contraseña incorrectos');
+              const data = await response.json();
+              this.token = data.access_token;
+              this.isLoggedIn = true;
+              this.vistaActual = 'evaluacion';
+              localStorage.setItem('cimtraToken', this.token);
+              this.password = '';
+              
+              if(this.entidad && this.periodo) {
+                 this.cargarDeBD();
+              }
+            } catch (err) {
+              this.loginError = err.message;
+            }
+          },
+          logout() {
+            this.isLoggedIn = false;
+            this.token = null;
+            this.vistaActual = 'login';
+            localStorage.removeItem('cimtraToken');
+          },
+          async guardarEnBD() {
+             if(!this.token) return;
+             try {
+                await fetch('http://127.0.0.1:8000/api/guardar', {
+                   method: 'POST',
+                   headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': 'Bearer ' + this.token
+                   },
+                   body: JSON.stringify({
+                      entidad: this.entidad,
+                      periodo: this.periodo,
+                      cuestionario_data: this.campos
+                   })
+                });
+             } catch(e) { console.error("Error guardando en BD", e); }
+          },
+          async cargarDeBD() {
+             if(!this.token) return;
+             try {
+                const res = await fetch(`http://127.0.0.1:8000/api/cargar?entidad=${this.entidad}&periodo=${this.periodo}`, {
+                   headers: { 'Authorization': 'Bearer ' + this.token }
+                });
+                if(res.ok) {
+                   const data = await res.json();
+                   this.campos = data.cuestionario_data;
+                }
+             } catch(e) { console.error("Error cargando de BD", e); }
+          },
+          iniciarRevision() {
+            // Reiniciar todos los campos a su estado original para una nueva revisión
+            this.campos = JSON.parse(JSON.stringify(cimtraData));
+            this.bloqueSeleccionado = null;
+            this.campoSeleccionado = null;
+            let closeBtn = document.querySelector('#modalNuevaRevision .btn-close');
+            if(closeBtn) closeBtn.click();
+          },
+          agregarNuevoCampo() {
+            let campoObj = this.campos.find(c => c.nombre.toLowerCase().trim() === this.nuevoCampo.campo.toLowerCase().trim());
+            if (!campoObj) {
+              campoObj = { id: Date.now(), nombre: this.nuevoCampo.campo, bloques: [] };
+              this.campos.push(campoObj);
+            }
+            let bloqueObj = campoObj.bloques.find(b => b.nombre.toLowerCase().trim() === this.nuevoCampo.bloque.toLowerCase().trim());
+            if (!bloqueObj) {
+              bloqueObj = { id: Date.now() + 1, nombre: this.nuevoCampo.bloque, aspectos: [{ id: Date.now() + 2, titulo: 'Criterios', criterios: [] }] };
+              campoObj.bloques.push(bloqueObj);
+            }
+
+            let aspectoObj = bloqueObj.aspectos[0];
+            aspectoObj.criterios.push({
+              id: Date.now() + 3,
+              descripcion: this.nuevoCampo.criterios,
+              puntos: this.nuevoCampo.puntos.toString(),
+              cumple: null,
+              errores: { no_existe: false, no_actualizada: false, no_corresponde: false, ilegible: false, enlace_roto: false }
+            });
+
+            // reset form after saving
+            this.nuevoCampo = { campo: '', bloque: '', puntos: null, criterios: '' };
+            let closeBtn = document.querySelector('#modalNuevosCampos .btn-close');
+            if(closeBtn) closeBtn.click();
+          },
+          calcularPuntaje(aspecto) {
+            let total = 0;
+            if (aspecto && aspecto.criterios) {
+              aspecto.criterios.forEach(c => {
+                if (c.cumple === 'si') {
+                  const pts = parseInt(c.puntos, 10);
+                  if (!isNaN(pts)) total += pts;
+                }
+              });
+            }
+            return total;
+          },
+          calcularPuntajeMaximo(aspecto) {
+            let total = 0;
+            if (aspecto && aspecto.criterios) {
+              aspecto.criterios.forEach(c => {
+                const pts = parseInt(c.puntos, 10);
+                if (!isNaN(pts)) total += pts;
+              });
+            }
+            return total;
+          },
+          calcularPorcentaje(aspecto) {
+            let maximo = this.calcularPuntajeMaximo(aspecto);
+            if (maximo === 0) return 0;
+            let actual = this.calcularPuntaje(aspecto);
+            let porcentaje = (actual / maximo) * 100;
+            return porcentaje.toFixed(2); // Redondear a 2 decimales
+          },
+          calcularPuntajeGlobal() {
+            let total = 0;
+            this.campos.forEach(c => {
+              if (c.bloques) {
+                c.bloques.forEach(b => {
+                  if (b.aspectos) {
+                    b.aspectos.forEach(a => {
+                      total += this.calcularPuntaje(a);
+                    });
+                  }
+                });
+              }
+            });
+            return total;
+          },
+          calcularPuntajeMaximoGlobal() {
+            let total = 0;
+            this.campos.forEach(c => {
+              if (c.bloques) {
+                c.bloques.forEach(b => {
+                  if (b.aspectos) {
+                    b.aspectos.forEach(a => {
+                      total += this.calcularPuntajeMaximo(a);
+                    });
+                  }
+                });
+              }
+            });
+            return total;
+          },
+          calcularPorcentajeGlobal() {
+            let maximo = this.calcularPuntajeMaximoGlobal();
+            if (maximo === 0) return 0;
+            let actual = this.calcularPuntajeGlobal();
+            let porcentaje = (actual / maximo) * 100;
+            return porcentaje.toFixed(2);
+          }
+        }
+      }).mount('#app');
+    </script>
+  </body>
+</html>

@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+sqlalchemy
+bcrypt
+pyjwt
+openpyxl
+pydantic
+a2wsgi
+python-multipart

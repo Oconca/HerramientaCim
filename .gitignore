@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info
+dist
+build
+.eggs
+
+# Virtual Environment
+.venv
+venv
+env
+ENV
+env.bak
+venv.bak
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Database
+*.db
+*.db-journal
+oconca.db
+
+# Excel files (templates)
+*.xlsx
+Congreso.xlsx
+cimtra-oconca.xlsx
+
+# Data files
+*.json
+cimtra_data.json
+
+# Zip files
+*.zip
+oconca.zip
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
