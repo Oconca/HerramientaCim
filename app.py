@@ -25,7 +25,7 @@ SECRET_KEY = "tu_clave_secreta_super_segura" # Cámbiar en producción
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 7 días
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+#oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # --- App Config ---
 app = FastAPI(title="Backend OCONCA")
