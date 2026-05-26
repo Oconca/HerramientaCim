@@ -20,6 +20,27 @@ from database import engine, SessionLocal, Base, Usuario, Evaluacion, init_db, g
 # Initialize database
 init_db()
 
+# Create admin user if not exists
+def create_seed_user():
+    db = SessionLocal()
+    try:
+        admin = db.query(Usuario).filter(Usuario.username == "admin").first()
+        if not admin:
+            password = os.getenv("ADMIN_PASSWORD", "admin123")
+            salt = bcrypt.gensalt()
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+            admin = Usuario(username="admin", hashed_password=hashed_password, es_admin=True)
+            db.add(admin)
+            db.commit()
+            print("Usuario admin creado: admin / admin123")
+    except Exception as e:
+        print(f"Error creando usuario admin: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
+create_seed_user()
+
 # --- Security Config ---
 SECRET_KEY = "tu_clave_secreta_super_segura" # Cámbiar en producción
 ALGORITHM = "HS256"

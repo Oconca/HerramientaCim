@@ -7,3 +7,4 @@ openpyxl
 pydantic
 a2wsgi
 python-multipart
+psycopg2-binary
