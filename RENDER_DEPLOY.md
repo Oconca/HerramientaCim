@@ -37,11 +37,34 @@ SECRET_KEY = tu_clave_secreta_para_jwt
 3. El usuario admin se creará automáticamente al iniciar
 
 ## Credenciales por Defecto
-Después del deploy, usa:
-- **Usuario:** `admin`
-- **Contraseña:** `admin123` (o el valor de `ADMIN_PASSWORD` si lo configuraste)
+Después del deploy, estos usuarios se crean automáticamente:
+- **admin** / `admin123` (administrador)
+- **usuario1** / `usuario123` (usuario regular)
+- **usuario2** / `usuario123` (usuario regular)
 
-⚠️ **IMPORTANTE:** Cambia la contraseña después del primer login
+⚠️ **IMPORTANTE:** Cambia las contraseñas después del primer login
+
+## Agregar Nuevos Usuarios
+
+### Opción 1: Vía API (recomendado en producción)
+Usa el endpoint `/register` de la API:
+```bash
+curl -X POST https://tu-app-render.com/register \
+  -H "Content-Type: application/json" \
+  -d '{"username": "nuevo_usuario", "password": "contraseña_segura"}'
+```
+
+### Opción 2: Script local (para desarrollo)
+```bash
+python add_user.py <usuario> <password>
+python add_user.py <usuario> <password> admin  # Para crear admin
+python add_user.py listar  # Para ver todos los usuarios
+```
+
+### Opción 3: Variables de entorno
+Puedes configurar usuarios adicionales vía variables de entorno en Render:
+- Agrega variables como `USER1_PASSWORD`, `USER2_PASSWORD`, etc.
+- Modifica `create_seed_users()` en `app.py` para leer estas variables
 
 ## Instrucciones Paso a Paso
 

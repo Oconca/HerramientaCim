@@ -21,26 +21,40 @@ from database import engine, SessionLocal, Base, Usuario, Evaluacion, init_db, g
 # Initialize database
 init_db()
 
-# Create admin user if not exists
-def create_seed_user():
+# Create seed users if not exists
+def create_seed_users():
     db = SessionLocal()
     try:
-        admin = db.query(Usuario).filter(Usuario.username == "admin").first()
-        if not admin:
-            password = os.getenv("ADMIN_PASSWORD", "admin123")
-            salt = bcrypt.gensalt()
-            hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
-            admin = Usuario(username="admin", hashed_password=hashed_password, es_admin=True)
-            db.add(admin)
-            db.commit()
-            print("Usuario admin creado: admin / admin123")
+        # Usuarios por defecto
+        default_users = [
+            {"username": "admin", "password": os.getenv("ADMIN_PASSWORD", "admin123"), "es_admin": True},
+            {"username": "usuario1", "password": "usuario123", "es_admin": False},
+            {"username": "usuario2", "password": "usuario123", "es_admin": False},
+        ]
+        
+        for user_data in default_users:
+            existing_user = db.query(Usuario).filter(Usuario.username == user_data["username"]).first()
+            if not existing_user:
+                salt = bcrypt.gensalt()
+                hashed_password = bcrypt.hashpw(user_data["password"].encode('utf-8'), salt).decode('utf-8')
+                new_user = Usuario(
+                    username=user_data["username"],
+                    hashed_password=hashed_password,
+                    es_admin=user_data["es_admin"]
+                )
+                db.add(new_user)
+                db.commit()
+                print(f"Usuario {user_data['username']} creado: {user_data['username']} / {user_data['password']}")
+            else:
+                print(f"Usuario {user_data['username']} ya existe")
+                
     except Exception as e:
-        print(f"Error creando usuario admin: {e}")
+        print(f"Error creando usuarios seed: {e}")
         db.rollback()
     finally:
         db.close()
 
-create_seed_user()
+create_seed_users()
 
 # --- Security Config ---
 SECRET_KEY = "tu_clave_secreta_super_segura" # Cámbiar en producción
