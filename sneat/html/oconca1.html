@@ -152,11 +152,13 @@
                             Inicio
                           </a>
                           <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" href="javascript:void(0)" @click="volverAlDashboard">Ver Revisiones / Dashboard</a>
                             <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#modalNuevaRevision">Nueva Revisión</a>
                             <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#modalNuevosCampos">Nuevos Campos</a>
                           </div>
                         </div>
                         <a class="nav-item nav-link" href="javascript:void(0)" @click="exportarExcel()" v-if="isLoggedIn">Exportar Excel</a>
+                        <a class="nav-item nav-link" href="javascript:void(0)" @click="exportarWord()" v-if="isLoggedIn">Exportar Word</a>
                        
                       </div>
                       <div class="navbar-nav ms-auto" v-if="isLoggedIn">
@@ -175,12 +177,16 @@
             <!-- Global header Entidad y Periodo -->
             <div class="container-fluid flex-grow-1 px-0 container-p-y pb-0" v-if="entidad || periodo">
               <div class="card p-3 shadow-sm bg-label-primary mb-3 mt-3 mx-4" style="border: 1px solid #d9dee3;">
-                <h5 class="mb-0 text-primary d-flex align-items-center">
-                  <i class="bx bx-building-house me-2"></i> <strong>Entidad:&nbsp;</strong> {{ entidad || '---' }} 
-                  <span class="mx-4 text-muted">|</span> 
-                  <i class="bx bx-calendar me-2"></i> <strong>Periodo:&nbsp;</strong> {{ periodo || '---' }}
-                  <span class="mx-4 text-muted">|</span> 
-                  <i class="bx bx-folder me-2"></i> <strong>Formato:&nbsp;</strong> {{ tipo }}
+                <h5 class="mb-0 text-primary d-flex align-items-center flex-wrap gap-2">
+                  <span><i class="bx bx-building-house me-2"></i> <strong>Entidad:&nbsp;</strong> {{ entidad || '---' }}</span>
+                  <span class="text-muted">|</span> 
+                  <span><i class="bx bx-calendar me-2"></i> <strong>Periodo:&nbsp;</strong> {{ periodo || '---' }}</span>
+                  <span class="text-muted">|</span> 
+                  <span><i class="bx bx-folder me-2"></i> <strong>Formato:&nbsp;</strong> {{ tipo }}</span>
+                  
+                  <span v-if="ultimoUsuario" class="ms-auto" style="font-size: 0.85em; display: flex; align-items: center;">
+                    <i class="bx bx-user-circle me-1"></i> <strong class="me-1">Última modif. por:</strong> {{ ultimoUsuario }} <span class="text-muted ms-2">{{ ultimaModificacion }}</span>
+                  </span>
                 </h5>
               </div>
             </div>
@@ -191,10 +197,49 @@
               <!-- Evaluacion -->
               <div v-if="vistaActual === 'evaluacion'">
                 <!-- Home / Welcome -->
-              <div v-if="!bloqueSeleccionado" class="card mb-4 text-center">
-                <div class="card-body">
-                  <h3 class="card-title">Bienvenido a la Herramienta CIMTRA</h3>
-                  <p class="card-text">Selecciona un bloque de evaluación en el menú lateral para comenzar.</p>
+              <div v-if="!bloqueSeleccionado" class="card mb-4">
+                <div class="card-header border-bottom">
+                  <h4 class="card-title mb-0">Bienvenido a la Herramienta CIMTRA</h4>
+                  <small class="text-muted">Selecciona una revisión existente o crea una nueva para comenzar.</small>
+                </div>
+                <div class="card-body mt-4">
+                  <h5 class="card-title text-primary"><i class="bx bx-list-ul me-2"></i>Revisiones Existentes</h5>
+                  <div class="table-responsive text-nowrap" v-if="listaRevisiones.length > 0">
+                    <table class="table table-hover table-bordered">
+                      <thead>
+                        <tr>
+                          <th>Entidad</th>
+                          <th>Periodo</th>
+                          <th>Formato</th>
+                          <th>Última Modificación</th>
+                          <th>Por Usuario</th>
+                          <th>Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody class="table-border-bottom-0">
+                        <tr v-for="rev in listaRevisiones" :key="rev.id">
+                          <td><strong>{{ rev.entidad }}</strong></td>
+                          <td>{{ rev.periodo }}</td>
+                          <td><span class="badge bg-label-info">{{ rev.tipo }}</span></td>
+                          <td>
+                             <small>{{ rev.ultima_modificacion || 'N/A' }}</small>
+                          </td>
+                          <td>{{ rev.ultimo_usuario || 'Desconocido' }}</td>
+                          <td class="text-nowrap">
+                            <button type="button" class="btn btn-sm btn-primary" @click="abrirRevision(rev)">
+                              <i class="bx bx-folder-open me-1"></i> Abrir
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger ms-2" @click="borrarRevision(rev)" title="Borrar Revisión">
+                              <i class="bx bx-trash"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div v-else class="alert alert-secondary" role="alert">
+                    No hay revisiones creadas actualmente. Usa el botón en el menú "Inicio -> Nueva Revisión" para crear la primera.
+                  </div>
                 </div>
               </div>
 
@@ -465,7 +510,11 @@
             username: '',
             password: '',
             token: null,
-            loginError: null
+            loginError: null,
+            ultimoUsuario: null,
+            ultimaModificacion: null,
+            listaRevisiones: [],
+            isSavingPaused: false
           };
         },
         mounted() {
@@ -494,11 +543,15 @@
                 } catch (e) { console.error("Error", e); }
               }
             }
+            if(this.isLoggedIn) {
+               this.cargarListaRevisiones();
+            }
           }
         },
         watch: {
           campos: {
             handler(newValue) {
+              if (this.isSavingPaused) return;
               localStorage.setItem('cimtraProgress', JSON.stringify(newValue));
               // Si estamos logueados y tenemos entidad y periodo, sincronizamos con la base de datos
               if (this.isLoggedIn && this.entidad && this.periodo) {
@@ -533,6 +586,8 @@
               this.vistaActual = 'evaluacion';
               localStorage.setItem('cimtraToken', this.token);
               this.password = '';
+              
+              this.cargarListaRevisiones();
 
               if (this.entidad && this.periodo) {
                 this.cargarDeBD();
@@ -567,6 +622,7 @@
           },
           async cargarDeBD() {
             if (!this.token) return;
+            this.isSavingPaused = true;
             try {
               const res = await fetch(`/api/cargar?entidad=${this.entidad}&periodo=${this.periodo}&tipo=${this.tipo}`, {
                 headers: { 'Authorization': 'Bearer ' + this.token }
@@ -575,8 +631,64 @@
                 const data = await res.json();
                 this.campos = data.cuestionario_data;
                 if (data.tipo) this.tipo = data.tipo;
+                this.ultimoUsuario = data.ultimo_usuario || 'Desconocido';
+                this.ultimaModificacion = data.ultima_modificacion || '';
+              } else {
+                // Not found, so no user/date
+                this.ultimoUsuario = null;
+                this.ultimaModificacion = null;
               }
-            } catch (e) { console.error("Error cargando de BD", e); }
+            } catch (e) { 
+              console.error("Error cargando de BD", e); 
+            } finally {
+              // Permitir save nuevamente luego de la inicialización de Vue
+              setTimeout(() => { this.isSavingPaused = false; }, 100);
+            }
+          },
+          async cargarListaRevisiones() {
+             if (!this.token) return;
+             try {
+                const res = await fetch('/api/evaluaciones', {
+                   headers: { 'Authorization': 'Bearer ' + this.token }
+                });
+                if (res.ok) {
+                   this.listaRevisiones = await res.json();
+                }
+             } catch (e) { console.error(e); }
+          },
+          volverAlDashboard() {
+             this.bloqueSeleccionado = null;
+             this.campoSeleccionado = null;
+             this.cargarListaRevisiones();
+             window.scrollTo(0, 0);
+          },
+          abrirRevision(rev) {
+             this.entidad = rev.entidad;
+             this.periodo = rev.periodo;
+             this.tipo = rev.tipo;
+             this.bloqueSeleccionado = null;
+             this.campoSeleccionado = null;
+             this.cargarDeBD();
+             // Scroll up
+             window.scrollTo(0,0);
+          },
+          async borrarRevision(rev) {
+             if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente la revisión de ${rev.entidad} - ${rev.periodo}?`)) {
+                 return;
+             }
+             if (!this.token) return;
+             try {
+                const res = await fetch(`/api/borrar?id=${rev.id}`, {
+                   method: 'DELETE',
+                   headers: { 'Authorization': 'Bearer ' + this.token }
+                });
+                if (res.ok) {
+                   this.cargarListaRevisiones();
+                } else {
+                   const err = await res.json();
+                   alert("No se pudo borrar: " + (err.detail || 'Error'));
+                }
+             } catch (e) { console.error(e); }
           },
           async exportarExcel() {
             if (!this.entidad || !this.periodo) {
@@ -609,17 +721,79 @@
               alert("Error de red al intentar exportar.");
             }
           },
-          iniciarRevision() {
-            // Reiniciar todos los campos a su estado original para una nueva revisión
-            if (this.tipo === 'Congreso') {
-              this.campos = JSON.parse(JSON.stringify(cimtraDataCongreso));
-            } else {
-              this.campos = JSON.parse(JSON.stringify(cimtraData));
+          async exportarWord() {
+            if (!this.entidad || !this.periodo) {
+              alert("Por favor asegúrate de haber cargado o empezado una revisión con Entidad y Periodo.");
+              return;
             }
-            this.bloqueSeleccionado = null;
-            this.campoSeleccionado = null;
+            if (this.tipo !== 'Congreso') {
+              alert("Por el momento, la exportación a Word solo está disponible para tipo Congreso.");
+              return;
+            }
+            try {
+              const response = await fetch(`/api/exportar_word?entidad=${encodeURIComponent(this.entidad)}&periodo=${encodeURIComponent(this.periodo)}&tipo=${encodeURIComponent(this.tipo)}`, {
+                headers: { 'Authorization': 'Bearer ' + this.token }
+              });
+
+              if (!response.ok) {
+                const data = await response.json();
+                alert("Error al exportar: " + (data.detail || "Error desconocido"));
+                return;
+              }
+
+              const blob = await response.blob();
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `CIMTRA_${this.entidad.replace(/ /g, '_')}_${this.periodo.replace(/ /g, '_')}.docx`;
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+              window.URL.revokeObjectURL(url);
+            } catch (e) {
+              console.error("Error al exportar a Word", e);
+              alert("Error de red al intentar exportar a Word.");
+            }
+          },
+          async iniciarRevision() {
             let closeBtn = document.querySelector('#modalNuevaRevision .btn-close');
             if (closeBtn) closeBtn.click();
+            
+            this.bloqueSeleccionado = null;
+            this.campoSeleccionado = null;
+            this.isSavingPaused = true;
+            
+            try {
+              // Checar si ya existe en la base de datos
+              const res = await fetch(`/api/cargar?entidad=${this.entidad}&periodo=${this.periodo}&tipo=${this.tipo}`, {
+                headers: { 'Authorization': 'Bearer ' + this.token }
+              });
+              
+              if (res.ok) {
+                // Ya existe, mejor la cargamos en lugar de borrarla
+                const data = await res.json();
+                this.campos = data.cuestionario_data;
+                this.ultimoUsuario = data.ultimo_usuario || 'Desconocido';
+                this.ultimaModificacion = data.ultima_modificacion || '';
+              } else {
+                // No existe, inicializar nueva en blanco
+                if (this.tipo === 'Congreso') {
+                  this.campos = JSON.parse(JSON.stringify(cimtraDataCongreso));
+                } else {
+                  this.campos = JSON.parse(JSON.stringify(cimtraData));
+                }
+                this.ultimoUsuario = null;
+                this.ultimaModificacion = null;
+              }
+            } catch(e) {
+               console.error(e);
+            } finally {
+               this.cargarListaRevisiones(); // Actualizar dashboard por si acaso
+               setTimeout(() => { 
+                 this.isSavingPaused = false; 
+                 this.guardarEnBD(); 
+               }, 100);
+            }
           },
           agregarNuevoCampo() {
             let campoObj = this.campos.find(c => c.nombre.toLowerCase().trim() === this.nuevoCampo.campo.toLowerCase().trim());

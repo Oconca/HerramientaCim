@@ -8,11 +8,12 @@ from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import tempfile
 import openpyxl
+import docx
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 import bcrypt
-from pydantic import BaseModel
+from pydantic import BaseModel, root_validator
 import jwt
 
 from database import engine, SessionLocal, Base, Usuario, Evaluacion, init_db, get_db
@@ -154,9 +155,8 @@ def get_user_me(current_user: Usuario = Depends(get_current_user)):
 
 @app.post("/api/guardar")
 def save_evaluation(payload: CuestionarioSave, db: Session = Depends(get_db), current_user: Usuario = Depends(get_current_user)):
-    # Buscar si ya existe una evaluación para este usuario, entidad y periodo
+    # Buscar si ya existe una evaluación globalmente por entidad y periodo
     evaluacion = db.query(Evaluacion).filter(
-        Evaluacion.usuario_id == current_user.id,
         Evaluacion.entidad == payload.entidad,
         Evaluacion.periodo == payload.periodo,
         Evaluacion.tipo == payload.tipo
@@ -168,6 +168,7 @@ def save_evaluation(payload: CuestionarioSave, db: Session = Depends(get_db), cu
         # Actualizar
         evaluacion.datos_cuestionario = json.dumps(payload.cuestionario_data)
         evaluacion.ultima_modificacion = now_str
+        evaluacion.usuario_id = current_user.id  # Registrar quién modificó por última vez
     else:
         # Crear nueva
         evaluacion = Evaluacion(
@@ -187,7 +188,6 @@ def save_evaluation(payload: CuestionarioSave, db: Session = Depends(get_db), cu
 @app.get("/api/cargar")
 def load_evaluation(entidad: str, periodo: str, tipo: str = "Capital", db: Session = Depends(get_db), current_user: Usuario = Depends(get_current_user)):
     evaluacion = db.query(Evaluacion).filter(
-        Evaluacion.usuario_id == current_user.id,
         Evaluacion.entidad == entidad,
         Evaluacion.periodo == periodo,
         Evaluacion.tipo == tipo
@@ -201,12 +201,13 @@ def load_evaluation(entidad: str, periodo: str, tipo: str = "Capital", db: Sessi
         "periodo": evaluacion.periodo,
         "tipo": getattr(evaluacion, "tipo", "Capital"),
         "cuestionario_data": json.loads(evaluacion.datos_cuestionario),
-        "ultima_modificacion": getattr(evaluacion, "ultima_modificacion", "")
+        "ultima_modificacion": getattr(evaluacion, "ultima_modificacion", ""),
+        "ultimo_usuario": evaluacion.usuario.username if evaluacion.usuario else "Desconocido"
     }
 
 @app.get("/api/evaluaciones")
 def list_evaluations(db: Session = Depends(get_db), current_user: Usuario = Depends(get_current_user)):
-    evaluaciones = db.query(Evaluacion).filter(Evaluacion.usuario_id == current_user.id).all()
+    evaluaciones = db.query(Evaluacion).all()
     
     resultado = []
     for ev in evaluaciones:
@@ -215,9 +216,19 @@ def list_evaluations(db: Session = Depends(get_db), current_user: Usuario = Depe
             "entidad": ev.entidad,
             "periodo": ev.periodo,
             "tipo": getattr(ev, "tipo", "Capital"),
-            "ultima_modificacion": getattr(ev, "ultima_modificacion", "")
+            "ultima_modificacion": getattr(ev, "ultima_modificacion", ""),
+            "ultimo_usuario": ev.usuario.username if ev.usuario else "Desconocido"
         })
     return resultado
+
+@app.delete("/api/borrar")
+def delete_evaluation(id: int, db: Session = Depends(get_db), current_user: Usuario = Depends(get_current_user)):
+    evaluacion = db.query(Evaluacion).filter(Evaluacion.id == id).first()
+    if not evaluacion:
+        raise HTTPException(status_code=404, detail="Evaluación no encontrada")
+    db.delete(evaluacion)
+    db.commit()
+    return {"message": "Evaluación eliminada correctamente"}
 
 @app.get("/api/exportar")
 def exportar_evaluacion(
@@ -229,7 +240,6 @@ def exportar_evaluacion(
     current_user: Usuario = Depends(get_current_user)
 ):
     evaluacion = db.query(Evaluacion).filter(
-        Evaluacion.usuario_id == current_user.id,
         Evaluacion.entidad == entidad,
         Evaluacion.periodo == periodo,
         Evaluacion.tipo == tipo
@@ -268,9 +278,9 @@ def exportar_evaluacion(
                     row[i].value = ""
                 
                 if c.get("cumple") == "si":
-                    row[5].value = "X"
+                    row[5].value = 1
                 elif c.get("cumple") == "no":
-                    row[6].value = "X"
+                    row[6].value = 0
                     
                 errs = c.get("errores", {})
                 if errs.get("no_existe"): row[7].value = "X"
@@ -288,6 +298,80 @@ def exportar_evaluacion(
         temp_path, 
         filename=f"CIMTRA_{entidad.replace(' ', '_')}_{periodo.replace(' ', '_')}.xlsx",
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+def _normalize_text(text):
+    return text.lower().replace(" ", "").replace("\n", "").replace(".", "").replace(",", "")
+
+@app.get("/api/exportar_word")
+def exportar_word_evaluacion(
+    entidad: str, 
+    periodo: str, 
+    background_tasks: BackgroundTasks, 
+    tipo: str = "Capital",
+    db: Session = Depends(get_db), 
+    current_user: Usuario = Depends(get_current_user)
+):
+    if tipo != "Congreso":
+         raise HTTPException(status_code=400, detail="Formato Word solo disponible actualmente para Congreso")
+
+    evaluacion = db.query(Evaluacion).filter(
+        Evaluacion.entidad == entidad,
+        Evaluacion.periodo == periodo,
+        Evaluacion.tipo == tipo
+    ).first()
+
+    if not evaluacion or not evaluacion.datos_cuestionario:
+        raise HTTPException(status_code=404, detail="No se encontró registro para esta entidad y periodo")
+
+    campos = json.loads(evaluacion.datos_cuestionario)
+    
+    # Construir diccionario de criterios
+    criterios_dict = {}
+    for campo in campos:
+        for bloque in campo.get('bloques', []):
+            for aspecto in bloque.get('aspectos', []):
+                for c in aspecto.get('criterios', []):
+                    desc = c.get('descripcion', '')
+                    norm_desc = _normalize_text(desc)
+                    if norm_desc:
+                        criterios_dict[norm_desc] = c
+
+    doc = docx.Document("CIMTRA-Legislativo.docx")
+    
+    for table in doc.tables:
+        for row in table.rows:
+            if len(row.cells) >= 5:
+                desc = row.cells[0].text
+                norm_desc = _normalize_text(desc)
+                
+                # Match criterion
+                matched_c = None
+                if norm_desc:
+                    # Encontrar coincidencia exacta o usar subcadena
+                    for k, val in criterios_dict.items():
+                        if k.startswith(norm_desc[:30]) or norm_desc.startswith(k[:30]):
+                            matched_c = val
+                            break
+                            
+                if matched_c:
+                    row.cells[2].text = ""  # Sí cell mark
+                    row.cells[4].text = ""  # No cell mark
+                    cumple = matched_c.get("cumple")
+                    if cumple == "si":
+                        row.cells[2].text = "X"
+                    elif cumple == "no":
+                        row.cells[4].text = "X"
+                        
+    temp_fd, temp_path = tempfile.mkstemp(suffix=".docx")
+    os.close(temp_fd)
+    doc.save(temp_path)
+
+    background_tasks.add_task(os.remove, temp_path)
+    return FileResponse(
+        temp_path, 
+        filename=f"CIMTRA_{entidad.replace(' ', '_')}_{periodo.replace(' ', '_')}.docx",
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )
 
 if __name__ == "__main__":
